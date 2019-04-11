@@ -47,7 +47,7 @@ public class RebalanceService extends ServiceThread {
         this.rebalanceImpl = rebalanceImpl;
         this.configManagementService = configManagementService;
         this.clusterManagementService = clusterManagementService;
-        this.configManagementService.registerListener(new ConnectorConnectorConfigChangeListenerImpl());
+        this.configManagementService.registerListener(new ConnectorConfigChangeListenerImpl());
         this.clusterManagementService.registerListener(new WorkerStatusListenerImpl());
     }
 
@@ -79,7 +79,7 @@ public class RebalanceService extends ServiceThread {
         }
     }
 
-    class ConnectorConnectorConfigChangeListenerImpl implements ConfigManagementService.ConnectorConfigUpdateListener {
+    class ConnectorConfigChangeListenerImpl implements ConfigManagementService.ConnectorConfigUpdateListener {
 
         /**
          * When config change.

@@ -65,7 +65,9 @@ public class WorkerTest {
     public void init() {
         connectConfig = new ConnectConfig();
         connectConfig.setHttpPort(8081);
-        connectConfig.setOmsDriverUrl("oms:rocketmq://localhost:9876/default:default");
+        connectConfig.setSinkOmsDriverUrl("oms:rocketmq://localhost:9876/default:default");
+        connectConfig.setSourceOmsDriverUrl("oms:rocketmq://localhost:9876/default:default");
+        connectConfig.setRuntimeOmsDriverUrl("oms:rocketmq://localhost:9876/default:default");
         connectConfig.setWorkerId("DEFAULT_WORKER_1");
         connectConfig.setStorePathRootDir(System.getProperty("user.home") + File.separator + "testConnectorStore");
         messagingAccessWrapper = new MessagingAccessWrapper();
@@ -139,7 +141,7 @@ public class WorkerTest {
             connectKeyValue.getProperties().put("key2", "TEST-CONN-" + i + "2");
             connectKeyValue.getProperties().put(RuntimeConfigDefine.TASK_CLASS, TestSourceTask.class.getName());
             connectKeyValue.getProperties().put(RuntimeConfigDefine.SOURCE_RECORD_CONVERTER, TestConverter.class.getName());
-            connectKeyValue.getProperties().put(RuntimeConfigDefine.OMS_DRIVER_URL, this.connectConfig.getOmsDriverUrl());
+            connectKeyValue.getProperties().put(RuntimeConfigDefine.RUNTIME_OMS_DRIVER_URL, this.connectConfig.getRuntimeOmsDriverUrl());
             connectKeyValues.add(connectKeyValue);
             taskConfigs.put("TEST-CONN-" + i, connectKeyValues);
         }

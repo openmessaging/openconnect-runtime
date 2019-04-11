@@ -209,7 +209,7 @@ public class Worker {
 
                 if(task instanceof SourceTask){
                     Producer producer = messagingAccessWrapper
-                        .getMessageAccessPoint(keyValue.getString(RuntimeConfigDefine.OMS_DRIVER_URL)).createProducer();
+                        .getMessageAccessPoint(keyValue.getString(RuntimeConfigDefine.RUNTIME_OMS_DRIVER_URL)).createProducer();
                     producer.startup();
                     WorkerSourceTask workerSourceTask = new WorkerSourceTask(connectorName,
                                 (SourceTask) task, keyValue,

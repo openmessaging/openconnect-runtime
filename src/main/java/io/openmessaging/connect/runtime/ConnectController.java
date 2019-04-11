@@ -91,7 +91,7 @@ public class ConnectController {
 
         this.connectConfig = connectConfig;
         this.messagingAccessWrapper = new MessagingAccessWrapper();
-        MessagingAccessPoint messageAccessPoint = messagingAccessWrapper.getMessageAccessPoint(connectConfig.getOmsDriverUrl());
+        MessagingAccessPoint messageAccessPoint = messagingAccessWrapper.getMessageAccessPoint(connectConfig.getRuntimeOmsDriverUrl());
         this.clusterManagementService = new ClusterManagementServiceImpl(connectConfig, messageAccessPoint);
         this.configManagementService = new ConfigManagementServiceImpl(connectConfig, messageAccessPoint);
         this.positionManagementService = new PositionManagementServiceImpl(connectConfig, messageAccessPoint);

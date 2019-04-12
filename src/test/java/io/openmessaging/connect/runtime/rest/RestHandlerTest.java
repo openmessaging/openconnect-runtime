@@ -19,7 +19,7 @@ package io.openmessaging.connect.runtime.rest;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import io.openmessaging.connect.runtime.ConnectController;
+import io.openmessaging.connect.runtime.RuntimeController;
 import io.openmessaging.connect.runtime.common.ConnectKeyValue;
 import io.openmessaging.connect.runtime.config.ConnectConfig;
 import io.openmessaging.connect.runtime.config.RuntimeConfigDefine;
@@ -63,7 +63,7 @@ import static org.mockito.Mockito.when;
 public class RestHandlerTest {
 
     @Mock
-    private ConnectController connectController;
+    private RuntimeController runtimeController;
 
     @Mock
     private ConfigManagementService configManagementService;
@@ -129,9 +129,9 @@ public class RestHandlerTest {
 
     @Before
     public void init() throws Exception {
-        when(connectController.getConnectConfig()).thenReturn(connectConfig);
+        when(runtimeController.getConnectConfig()).thenReturn(connectConfig);
         when(connectConfig.getHttpPort()).thenReturn(8081);
-        when(connectController.getConfigManagementService()).thenReturn(configManagementService);
+        when(runtimeController.getConfigManagementService()).thenReturn(configManagementService);
         when(configManagementService.putConnectorConfig(anyString(), any(ConnectKeyValue.class))).thenReturn("");
 
         String connectName = "testConnector";
@@ -170,7 +170,7 @@ public class RestHandlerTest {
             }
         };
 
-        when(connectController.getClusterManagementService()).thenReturn(clusterManagementService);
+        when(runtimeController.getClusterManagementService()).thenReturn(clusterManagementService);
         when(clusterManagementService.getAllAliveWorkers()).thenReturn(aliveWorker);
 
         sourcePartition = "127.0.0.13306".getBytes("UTF-8");
@@ -200,11 +200,11 @@ public class RestHandlerTest {
                 add(workerSourceTask2);
             }
         };
-        when(connectController.getWorker()).thenReturn(worker);
+        when(runtimeController.getWorker()).thenReturn(worker);
         when(worker.getWorkingConnectors()).thenReturn(workerConnectors);
         when(worker.getWorkingTasks()).thenReturn(workerSourceTasks);
 
-        restHandler = new RestHandler(connectController);
+        restHandler = new RestHandler(runtimeController);
 
         httpClient = HttpClientBuilder.create().build();
     }

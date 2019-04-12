@@ -20,7 +20,7 @@ package io.openmessaging.connect.runtime.rest;
 import com.alibaba.fastjson.JSON;
 import io.javalin.Context;
 import io.javalin.Javalin;
-import io.openmessaging.connect.runtime.ConnectController;
+import io.openmessaging.connect.runtime.RuntimeController;
 import io.openmessaging.connect.runtime.common.ConnectKeyValue;
 import io.openmessaging.connect.runtime.common.LoggerName;
 import io.openmessaging.connect.runtime.connectorwrapper.WorkerConnector;
@@ -38,11 +38,11 @@ public class RestHandler {
 
     private static final Logger log = LoggerFactory.getLogger(LoggerName.OMS_RUNTIME);
 
-    private final ConnectController connectController;
+    private final RuntimeController runtimeController;
 
-    public RestHandler(ConnectController connectController){
-        this.connectController = connectController;
-        Javalin app = Javalin.start(connectController.getConnectConfig().getHttpPort());
+    public RestHandler(RuntimeController runtimeController){
+        this.runtimeController = runtimeController;
+        Javalin app = Javalin.start(runtimeController.getConnectConfig().getHttpPort());
         app.get("/connectors/:connectorName", this::handleCreateConnector);
         app.get("/connectors/:connectorName/config", this::handleQueryConnectorConfig);
         app.get("/connectors/:connectorName/status", this::handleQueryConnectorStatus);
@@ -54,8 +54,8 @@ public class RestHandler {
 
     private void getAllocatedInfo(Context context){
 
-        Set<WorkerConnector> workerConnectors = connectController.getWorker().getWorkingConnectors();
-        Set<WorkerSourceTask> workerSourceTasks = connectController.getWorker().getWorkingTasks();
+        Set<WorkerConnector> workerConnectors = runtimeController.getWorker().getWorkingConnectors();
+        Set<WorkerSourceTask> workerSourceTasks = runtimeController.getWorker().getWorkingTasks();
         StringBuilder sb = new StringBuilder();
         sb.append("working connectors:\n");
         for(WorkerConnector workerConnector : workerConnectors){
@@ -70,13 +70,13 @@ public class RestHandler {
 
     private void getConfigInfo(Context context) {
 
-        Map<String, ConnectKeyValue> connectorConfigs = connectController.getConfigManagementService().getConnectorConfigs();
-        Map<String, List<ConnectKeyValue>> taskConfigs = connectController.getConfigManagementService().getTaskConfigs();
+        Map<String, ConnectKeyValue> connectorConfigs = runtimeController.getConfigManagementService().getConnectorConfigs();
+        Map<String, List<ConnectKeyValue>> taskConfigs = runtimeController.getConfigManagementService().getTaskConfigs();
         context.result("ConnectorConfigs:"+JSON.toJSONString(connectorConfigs)+"\nTaskConfigs:"+JSON.toJSONString(taskConfigs));
     }
 
     private void getClusterInfo(Context context) {
-        context.result(JSON.toJSONString(connectController.getClusterManagementService().getAllAliveWorkers()));
+        context.result(JSON.toJSONString(runtimeController.getClusterManagementService().getAllAliveWorkers()));
     }
 
     private void handleCreateConnector(Context context) {
@@ -89,7 +89,7 @@ public class RestHandler {
         }
         try {
 
-            String result = connectController.getConfigManagementService().putConnectorConfig(connectorName, configs);
+            String result = runtimeController.getConfigManagementService().putConnectorConfig(connectorName, configs);
             if(result != null && result.length() > 0){
                 context.result(result);
             }else{
@@ -104,8 +104,8 @@ public class RestHandler {
 
         String connectorName = context.param("connectorName");
 
-        Map<String, ConnectKeyValue> connectorConfigs = connectController.getConfigManagementService().getConnectorConfigs();
-        Map<String, List<ConnectKeyValue>> taskConfigs = connectController.getConfigManagementService().getTaskConfigs();
+        Map<String, ConnectKeyValue> connectorConfigs = runtimeController.getConfigManagementService().getConnectorConfigs();
+        Map<String, List<ConnectKeyValue>> taskConfigs = runtimeController.getConfigManagementService().getTaskConfigs();
         StringBuilder sb = new StringBuilder();
         sb.append("ConnectorConfigs:")
             .append(JSON.toJSONString(connectorConfigs.get(connectorName)))
@@ -118,7 +118,7 @@ public class RestHandler {
     private void handleQueryConnectorStatus(Context context){
 
         String connectorName = context.param("connectorName");
-        Map<String, ConnectKeyValue> connectorConfigs = connectController.getConfigManagementService().getConnectorConfigs();
+        Map<String, ConnectKeyValue> connectorConfigs = runtimeController.getConfigManagementService().getConnectorConfigs();
 
         if(connectorConfigs.containsKey(connectorName)){
             context.result("running");
@@ -131,7 +131,7 @@ public class RestHandler {
         String connectorName = context.param("connectorName");
         try {
 
-            connectController.getConfigManagementService().removeConnectorConfig(connectorName);
+            runtimeController.getConfigManagementService().removeConnectorConfig(connectorName);
             context.result("success");
         } catch (Exception e) {
             context.result("failed");

@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Startup class of the runtime worker.
  */
-public class ConnectStartup {
+public class RuntimeStartup {
 
     private static final Logger log = LoggerFactory.getLogger(LoggerName.OMS_RUNTIME);
 
@@ -51,7 +51,7 @@ public class ConnectStartup {
         start(createConnectController(args));
     }
 
-    private static void start(ConnectController controller) {
+    private static void start(RuntimeController controller) {
 
         try {
             controller.start();
@@ -70,7 +70,7 @@ public class ConnectStartup {
      * @param args
      * @return
      */
-    private static ConnectController createConnectController(String[] args) {
+    private static RuntimeController createConnectController(String[] args) {
 
         try {
 
@@ -99,7 +99,7 @@ public class ConnectStartup {
             }
 
             // Create controller and initialize.
-            ConnectController controller = new ConnectController(connectConfig);
+            RuntimeController controller = new RuntimeController(connectConfig);
             controller.initialize();
 
             // Invoked when shutdown.

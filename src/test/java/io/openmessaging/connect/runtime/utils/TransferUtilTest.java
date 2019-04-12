@@ -26,7 +26,7 @@ import java.util.*;
 
 import static org.junit.Assert.*;
 
-public class TransferUtilsTest {
+public class TransferUtilTest {
 
     @Test
     public void testKeyValue2StringKeyValue() {
@@ -35,8 +35,8 @@ public class TransferUtilsTest {
         connectKeyValue.put("key2", 2L);
         connectKeyValue.put("key3", 3.0);
         connectKeyValue.put("key4", "4");
-        String s = TransferUtils.keyValueToString(connectKeyValue);
-        ConnectKeyValue connectKeyValue1 = TransferUtils.stringToKeyValue(s);
+        String s = TransferUtil.keyValueToString(connectKeyValue);
+        ConnectKeyValue connectKeyValue1 = TransferUtil.stringToKeyValue(s);
         assertEquals(1, connectKeyValue1.getInt("key1"));
         assertEquals(2L, connectKeyValue1.getLong("key2"));
         assertTrue(Objects.equals(3.0, connectKeyValue1.getDouble("key3")));
@@ -55,8 +55,8 @@ public class TransferUtilsTest {
                 add(connectKeyValue);
             }
         };
-        String s = TransferUtils.keyValueListToString(connectKeyValues);
-        List<ConnectKeyValue> connectKeyValues1 = TransferUtils.stringToKeyValueList(s);
+        String s = TransferUtil.keyValueListToString(connectKeyValues);
+        List<ConnectKeyValue> connectKeyValues1 = TransferUtil.stringToKeyValueList(s);
         assertNotNull(connectKeyValues1);
         ConnectKeyValue connectKeyValue1 = connectKeyValues1.get(0);
         assertEquals(1, connectKeyValue1.getInt("key1"));
@@ -93,13 +93,13 @@ public class TransferUtilsTest {
         Map<String, String> connectorMap = new HashMap<>();
         Map<String, String> taskMap = new HashMap<>();
         for (String key : connAndTaskConfigs.getConnectorConfigs().keySet()) {
-            connectorMap.put(key, TransferUtils.keyValueToString(connAndTaskConfigs.getConnectorConfigs().get(key)));
+            connectorMap.put(key, TransferUtil.keyValueToString(connAndTaskConfigs.getConnectorConfigs().get(key)));
         }
         for (String key : connAndTaskConfigs.getTaskConfigs().keySet()) {
-            taskMap.put(key, TransferUtils.keyValueListToString(connAndTaskConfigs.getTaskConfigs().get(key)));
+            taskMap.put(key, TransferUtil.keyValueListToString(connAndTaskConfigs.getTaskConfigs().get(key)));
         }
-        String s = TransferUtils.toJsonString(connectorMap, taskMap);
-        ConnAndTaskConfigs connAndTaskConfigs1 = TransferUtils.toConnAndTaskConfigs(s);
+        String s = TransferUtil.toJsonString(connectorMap, taskMap);
+        ConnAndTaskConfigs connAndTaskConfigs1 = TransferUtil.toConnAndTaskConfigs(s);
         Map<String, ConnectKeyValue> connectorConfigs1 = connAndTaskConfigs1.getConnectorConfigs();
 
         assertNotNull(connAndTaskConfigs1);

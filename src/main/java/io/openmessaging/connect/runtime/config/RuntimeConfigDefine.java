@@ -32,17 +32,7 @@ public class RuntimeConfigDefine {
     public static final String CONNECTOR_CLASS = "connector-class";
 
     public static final String TASK_CLASS = "task-class";
-
-    /**
-     * OMS driver url for the source connector
-     */
-    public static final String SOURCE_OMS_DRIVER_URL = "source-oms-driver-url";
-
-    /**
-     * OMS driver url for the sink connector
-     */
-    public static final String SINK_OMS_DRIVER_URL = "sink-oms-driver-url";
-
+    
     /**
      * OMS driver url for the runtime connector
      */
@@ -70,8 +60,6 @@ public class RuntimeConfigDefine {
         {
             add(CONNECTOR_CLASS);
             add(SOURCE_RECORD_CONVERTER);
-            add(SOURCE_OMS_DRIVER_URL);
-            add(SINK_OMS_DRIVER_URL);
             add(RUNTIME_OMS_DRIVER_URL);
         }
     };

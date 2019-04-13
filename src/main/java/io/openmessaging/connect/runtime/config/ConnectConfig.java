@@ -35,20 +35,10 @@ public class ConnectConfig {
     private String storePathRootDir = System.getProperty("user.home") + File.separator + "connectorStore";
 
     /**
-     * OMS driver url for source task, which determine the specific source task to pull message data from where.
-     */
-    private String sourceOmsDriverUrl = "oms:rocketmq://localhost:9876/default:default";
-
-    /**
      * OMS driver url, which determine the specific MQ to send and consume message.
      * The MQ is used for internal management of the connect runtime.
      */
     private String runtimeOmsDriverUrl = "oms:rocketmq://localhost:9876/default:default";
-
-    /**
-     * OMS driver url for sink task, which determine the specific source task to send message data to where.
-     */
-    private String sinkOmsDriverUrl = "oms:rocketmq://localhost:9876/default:default";
 
     /**
      * Http port for REST API.
@@ -105,27 +95,11 @@ public class ConnectConfig {
         this.configPersistInterval = configPersistInterval;
     }
 
-    public String getSourceOmsDriverUrl() {
-        return sourceOmsDriverUrl;
-    }
-
-    public void setSourceOmsDriverUrl(String sourceOmsDriverUrl) {
-        this.sourceOmsDriverUrl = sourceOmsDriverUrl;
-    }
-
     public String getRuntimeOmsDriverUrl() {
         return runtimeOmsDriverUrl;
     }
 
     public void setRuntimeOmsDriverUrl(String runtimeOmsDriverUrl) {
         this.runtimeOmsDriverUrl = runtimeOmsDriverUrl;
-    }
-
-    public String getSinkOmsDriverUrl() {
-        return sinkOmsDriverUrl;
-    }
-
-    public void setSinkOmsDriverUrl(String sinkOmsDriverUrl) {
-        this.sinkOmsDriverUrl = sinkOmsDriverUrl;
     }
 }

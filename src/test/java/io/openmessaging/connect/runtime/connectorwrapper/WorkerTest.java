@@ -65,8 +65,6 @@ public class WorkerTest {
     public void init() {
         connectConfig = new ConnectConfig();
         connectConfig.setHttpPort(8081);
-        connectConfig.setSinkOmsDriverUrl("oms:rocketmq://localhost:9876/default:default");
-        connectConfig.setSourceOmsDriverUrl("oms:rocketmq://localhost:9876/default:default");
         connectConfig.setRuntimeOmsDriverUrl("oms:rocketmq://localhost:9876/default:default");
         connectConfig.setWorkerId("DEFAULT_WORKER_1");
         connectConfig.setStorePathRootDir(System.getProperty("user.home") + File.separator + "testConnectorStore");

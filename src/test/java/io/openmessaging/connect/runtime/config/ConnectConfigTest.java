@@ -28,13 +28,9 @@ public class ConnectConfigTest {
         ConnectConfig connectConfig = new ConnectConfig();
         connectConfig.setHttpPort(8081);
         connectConfig.setWorkerId("DEFAULT_WORKER_1");
-        connectConfig.setSourceOmsDriverUrl("oms:rocketmq://localhost:9876/default1:default1");
-        connectConfig.setSinkOmsDriverUrl("oms:rocketmq://localhost:9876/default2:default2");
         connectConfig.setRuntimeOmsDriverUrl("oms:rocketmq://localhost:9876/default3:default3");
         assertThat(connectConfig.getHttpPort()).isEqualTo(8081);
         assertThat(connectConfig.getWorkerId()).isEqualTo("DEFAULT_WORKER_1");
-        assertThat(connectConfig.getSourceOmsDriverUrl()).isEqualTo("oms:rocketmq://localhost:9876/default1:default1");
-        assertThat(connectConfig.getSinkOmsDriverUrl()).isEqualTo("oms:rocketmq://localhost:9876/default2:default2");
         assertThat(connectConfig.getRuntimeOmsDriverUrl()).isEqualTo("oms:rocketmq://localhost:9876/default3:default3");
 
     }

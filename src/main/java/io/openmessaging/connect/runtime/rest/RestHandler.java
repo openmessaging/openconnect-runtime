@@ -43,10 +43,10 @@ public class RestHandler {
     public RestHandler(RuntimeController runtimeController){
         this.runtimeController = runtimeController;
         Javalin app = Javalin.start(runtimeController.getConnectConfig().getHttpPort());
-        app.get("/connectors/:connectorName", this::handleCreateConnector);
+        app.post("/connectors/:connectorName", this::handleCreateConnector);
         app.get("/connectors/:connectorName/config", this::handleQueryConnectorConfig);
         app.get("/connectors/:connectorName/status", this::handleQueryConnectorStatus);
-        app.get("/connectors/:connectorName/stop", this::handleStopConnector);
+        app.delete("/connectors/:connectorName/stop", this::handleStopConnector);
         app.get("/getClusterInfo", this::getClusterInfo);
         app.get("/getConfigInfo", this::getConfigInfo);
         app.get("/getAllocatedInfo", this::getAllocatedInfo);
@@ -96,6 +96,7 @@ public class RestHandler {
                 context.result("success");
             }
         } catch (Exception e) {
+            log.error("oms connect runtime create the connector exception, ", e);
             context.result("failed");
         }
     }
@@ -134,6 +135,7 @@ public class RestHandler {
             runtimeController.getConfigManagementService().removeConnectorConfig(connectorName);
             context.result("success");
         } catch (Exception e) {
+            log.error("oms connect runtime stop the connector exception, ", e);
             context.result("failed");
         }
     }

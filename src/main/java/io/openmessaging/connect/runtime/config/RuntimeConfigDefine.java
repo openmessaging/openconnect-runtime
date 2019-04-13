@@ -32,11 +32,11 @@ public class RuntimeConfigDefine {
     public static final String CONNECTOR_CLASS = "connector-class";
 
     public static final String TASK_CLASS = "task-class";
-
+    
     /**
-     * OMS driver url for the connector.
+     * OMS driver url for the runtime connector
      */
-    public static final String OMS_DRIVER_URL = "oms-driver-url";
+    public static final String RUNTIME_OMS_DRIVER_URL = "runtime-oms-driver-url";
 
     /**
      * Last updated time of the configuration.
@@ -59,8 +59,8 @@ public class RuntimeConfigDefine {
     public static final Set<String> REQUEST_CONFIG = new HashSet<String>(){
         {
             add(CONNECTOR_CLASS);
-            add(OMS_DRIVER_URL);
             add(SOURCE_RECORD_CONVERTER);
+            add(RUNTIME_OMS_DRIVER_URL);
         }
     };
 

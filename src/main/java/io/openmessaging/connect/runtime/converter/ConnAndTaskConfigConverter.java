@@ -19,7 +19,7 @@ package io.openmessaging.connect.runtime.converter;
 
 import io.openmessaging.connect.runtime.common.ConnAndTaskConfigs;
 import io.openmessaging.connect.runtime.common.LoggerName;
-import io.openmessaging.connect.runtime.utils.TransferUtils;
+import io.openmessaging.connect.runtime.utils.TransferUtil;
 import io.openmessaging.connector.api.data.Converter;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
@@ -41,12 +41,12 @@ public class ConnAndTaskConfigConverter implements Converter<ConnAndTaskConfigs>
             Map<String, String> connectorMap = new HashMap<>();
             Map<String, String> taskMap = new HashMap<>();
             for(String key : configs.getConnectorConfigs().keySet()){
-                connectorMap.put(key, TransferUtils.keyValueToString(configs.getConnectorConfigs().get(key)));
+                connectorMap.put(key, TransferUtil.keyValueToString(configs.getConnectorConfigs().get(key)));
             }
             for(String key : configs.getTaskConfigs().keySet()){
-                taskMap.put(key, TransferUtils.keyValueListToString(configs.getTaskConfigs().get(key)));
+                taskMap.put(key, TransferUtil.keyValueListToString(configs.getTaskConfigs().get(key)));
             }
-            return TransferUtils.toJsonString(connectorMap, taskMap).getBytes("UTF-8");
+            return TransferUtil.toJsonString(connectorMap, taskMap).getBytes("UTF-8");
         } catch (Exception e) {
             log.error("ConnAndTaskConfigConverter#objectToByte failed", e);
         }
@@ -58,7 +58,7 @@ public class ConnAndTaskConfigConverter implements Converter<ConnAndTaskConfigs>
 
         try {
             String jsonString = new String(bytes, "UTF-8");
-            ConnAndTaskConfigs configs = TransferUtils.toConnAndTaskConfigs(jsonString);
+            ConnAndTaskConfigs configs = TransferUtil.toConnAndTaskConfigs(jsonString);
             return configs;
         } catch (UnsupportedEncodingException e) {
             log.error("ConnAndTaskConfigConverter#byteToObject failed", e);

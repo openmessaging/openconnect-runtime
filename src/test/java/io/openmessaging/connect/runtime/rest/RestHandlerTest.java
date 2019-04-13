@@ -19,7 +19,7 @@ package io.openmessaging.connect.runtime.rest;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import io.openmessaging.connect.runtime.ConnectController;
+import io.openmessaging.connect.runtime.RuntimeController;
 import io.openmessaging.connect.runtime.common.ConnectKeyValue;
 import io.openmessaging.connect.runtime.config.ConnectConfig;
 import io.openmessaging.connect.runtime.config.RuntimeConfigDefine;
@@ -44,7 +44,9 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
@@ -59,13 +61,11 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.when;
 
-//import org.apache.rocketmq.mysql.MysqlConstants;
-
 @RunWith(MockitoJUnitRunner.class)
 public class RestHandlerTest {
 
     @Mock
-    private ConnectController connectController;
+    private RuntimeController runtimeController;
 
     @Mock
     private ConfigManagementService configManagementService;
@@ -131,20 +131,20 @@ public class RestHandlerTest {
 
     @Before
     public void init() throws Exception {
-        when(connectController.getConnectConfig()).thenReturn(connectConfig);
+        when(runtimeController.getConnectConfig()).thenReturn(connectConfig);
         when(connectConfig.getHttpPort()).thenReturn(8081);
-        when(connectController.getConfigManagementService()).thenReturn(configManagementService);
+        when(runtimeController.getConfigManagementService()).thenReturn(configManagementService);
         when(configManagementService.putConnectorConfig(anyString(), any(ConnectKeyValue.class))).thenReturn("");
 
         String connectName = "testConnector";
         ConnectKeyValue connectKeyValue = new ConnectKeyValue();
         connectKeyValue.put(RuntimeConfigDefine.CONNECTOR_CLASS, "io.openmessaging.connect.runtime.service.TestConnector");
-        connectKeyValue.put(RuntimeConfigDefine.OMS_DRIVER_URL, "oms:rocketmq://localhost:9876/default:default");
+        connectKeyValue.put(RuntimeConfigDefine.RUNTIME_OMS_DRIVER_URL, "oms:rocketmq://localhost:9876/default:default");
         connectKeyValue.put(RuntimeConfigDefine.SOURCE_RECORD_CONVERTER, "source-record-converter");
 
         ConnectKeyValue connectKeyValue1 = new ConnectKeyValue();
         connectKeyValue1.put(RuntimeConfigDefine.CONNECTOR_CLASS, "io.openmessaging.connect.runtime.service.TestConnector");
-        connectKeyValue1.put(RuntimeConfigDefine.OMS_DRIVER_URL, "oms:kafka://localhost:1234/default:default");
+        connectKeyValue1.put(RuntimeConfigDefine.RUNTIME_OMS_DRIVER_URL, "oms:kafka://localhost:1234/default:default");
         connectKeyValue1.put(RuntimeConfigDefine.SOURCE_RECORD_CONVERTER, "source-record-converter1");
 
         List<ConnectKeyValue> connectKeyValues = new ArrayList<ConnectKeyValue>(8) {
@@ -172,7 +172,7 @@ public class RestHandlerTest {
             }
         };
 
-        when(connectController.getClusterManagementService()).thenReturn(clusterManagementService);
+        when(runtimeController.getClusterManagementService()).thenReturn(clusterManagementService);
         when(clusterManagementService.getAllAliveWorkers()).thenReturn(aliveWorker);
 
         sourcePartition = "127.0.0.13306".getBytes("UTF-8");
@@ -202,51 +202,51 @@ public class RestHandlerTest {
                 add(workerSourceTask2);
             }
         };
-        when(connectController.getWorker()).thenReturn(worker);
+        when(runtimeController.getWorker()).thenReturn(worker);
         when(worker.getWorkingConnectors()).thenReturn(workerConnectors);
         when(worker.getWorkingTasks()).thenReturn(workerSourceTasks);
 
-        restHandler = new RestHandler(connectController);
+        restHandler = new RestHandler(runtimeController);
 
         httpClient = HttpClientBuilder.create().build();
     }
 
     @Test
     public void testRESTful() throws Exception {
-        URIBuilder uriBuilder = new URIBuilder(String.format(CREATE_CONNECTOR_URL, "testConnectorName"));
-        uriBuilder.setParameter("config", "{\"connector-class\": \"org.apache.rocketmq.mysql.connector.MysqlConnector\",\"mysqlAddr\": \"112.74.179.68\",\"mysqlPort\": \"3306\",\"mysqlUsername\": \"canal\",\"mysqlPassword\": \"canal\",\"source-record-converter\":\"io.openmessaging.connect.runtime.converter.JsonConverter\",\"oms-driver-url\":\"oms:rocketmq://localhost:9876/default:default\"}");
-        URI uri = uriBuilder.build();
-        HttpGet httpGet = new HttpGet(uri);
-        HttpResponse httpResponse = httpClient.execute(httpGet);
-        assertEquals(200, httpResponse.getStatusLine().getStatusCode());
-        assertEquals("success", EntityUtils.toString(httpResponse.getEntity(), "UTF-8"));
+        URIBuilder uriCreateBuilder = new URIBuilder(String.format(CREATE_CONNECTOR_URL, "testConnectorName"));
+        uriCreateBuilder.setParameter("config", "{\"connector-class\": \"org.apache.rocketmq.mysql.connector.MysqlConnector\",\"mysqlAddr\": \"112.74.179.68\",\"mysqlPort\": \"3306\",\"mysqlUsername\": \"canal\",\"mysqlPassword\": \"canal\",\"source-record-converter\":\"io.openmessaging.connect.runtime.converter.JsonConverter\",\"oms-driver-url\":\"oms:rocketmq://localhost:9876/default:default\"}");
+        URI uriPost = uriCreateBuilder.build();
+        HttpPost httpPost = new HttpPost(uriPost);
+        HttpResponse httpPostResponse = httpClient.execute(httpPost);
+        assertEquals(200, httpPostResponse.getStatusLine().getStatusCode());
+        assertEquals("success", EntityUtils.toString(httpPostResponse.getEntity(), "UTF-8"));
 
-        URIBuilder uriBuilder1 = new URIBuilder(String.format(STOP_CONNECTOR_URL, "testConnectorName"));
-        URI uri1 = uriBuilder1.build();
-        HttpGet httpGet1 = new HttpGet(uri1);
-        HttpResponse httpResponse1 = httpClient.execute(httpGet1);
-        assertEquals(200, httpResponse1.getStatusLine().getStatusCode());
-        assertEquals("success", EntityUtils.toString(httpResponse1.getEntity(), "UTF-8"));
+        URIBuilder uriDeleteBuilder = new URIBuilder(String.format(STOP_CONNECTOR_URL, "testConnectorName"));
+        URI uriDelete = uriDeleteBuilder.build();
+        HttpDelete httpDelete = new HttpDelete(uriDelete);
+        HttpResponse httpDeleteResponse = httpClient.execute(httpDelete);
+        assertEquals(200, httpDeleteResponse.getStatusLine().getStatusCode());
+        assertEquals("success", EntityUtils.toString(httpDeleteResponse.getEntity(), "UTF-8"));
 
-        URIBuilder uriBuilder2 = new URIBuilder(GET_CLUSTER_INFO_URL);
-        URI uri2 = uriBuilder2.build();
-        HttpGet httpGet2 = new HttpGet(uri2);
-        HttpResponse httpResponse2 = httpClient.execute(httpGet2);
-        assertEquals(200, httpResponse2.getStatusLine().getStatusCode());
-        assertEquals(JSON.toJSONString(aliveWorker), EntityUtils.toString(httpResponse2.getEntity(), "UTF-8"));
+        URIBuilder uriClusterInfoBuilder = new URIBuilder(GET_CLUSTER_INFO_URL);
+        URI uriClusterInfo = uriClusterInfoBuilder.build();
+        HttpGet httpClusterInfo = new HttpGet(uriClusterInfo);
+        HttpResponse httpClusterInfoResponse = httpClient.execute(httpClusterInfo);
+        assertEquals(200, httpClusterInfoResponse.getStatusLine().getStatusCode());
+        assertEquals(JSON.toJSONString(aliveWorker), EntityUtils.toString(httpClusterInfoResponse.getEntity(), "UTF-8"));
 
-        URIBuilder uriBuilder3 = new URIBuilder(GET_CONFIG_INFO_URL);
-        URI uri3 = uriBuilder3.build();
-        HttpGet httpGet3 = new HttpGet(uri3);
-        HttpResponse httpResponse3 = httpClient.execute(httpGet3);
-        assertEquals(200, httpResponse3.getStatusLine().getStatusCode());
+        URIBuilder uriConfigInfoBuilder = new URIBuilder(GET_CONFIG_INFO_URL);
+        URI uriConfigInfo = uriConfigInfoBuilder.build();
+        HttpGet httpConfigInfo = new HttpGet(uriConfigInfo);
+        HttpResponse httpConfigInfoResponse = httpClient.execute(httpConfigInfo);
+        assertEquals(200, httpConfigInfoResponse.getStatusLine().getStatusCode());
         String expectedResultConfig = "ConnectorConfigs:" + JSON.toJSONString(connectorConfigs) + "\nTaskConfigs:" + JSON.toJSONString(taskConfigs);
-        assertEquals(expectedResultConfig, EntityUtils.toString(httpResponse3.getEntity(), "UTF-8"));
+        assertEquals(expectedResultConfig, EntityUtils.toString(httpConfigInfoResponse.getEntity(), "UTF-8"));
 
-        URIBuilder uriBuilder4 = new URIBuilder(GET_ALLOCATED_INFO_URL);
-        URI uri4 = uriBuilder4.build();
-        HttpGet httpGet4 = new HttpGet(uri4);
-        HttpResponse httpResponse4 = httpClient.execute(httpGet4);
+        URIBuilder uriAllocatedInfoBuilder = new URIBuilder(GET_ALLOCATED_INFO_URL);
+        URI uriAllocatedInfo = uriAllocatedInfoBuilder.build();
+        HttpGet httpAllocatedInfo = new HttpGet(uriAllocatedInfo);
+        HttpResponse httpResponse4 = httpClient.execute(httpAllocatedInfo);
         assertEquals(200, httpResponse4.getStatusLine().getStatusCode());
         StringBuilder sb = new StringBuilder();
         sb.append("working connectors:\n");

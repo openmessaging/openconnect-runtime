@@ -88,14 +88,14 @@ public class ConfigManagementServiceImplTest {
     public void init() throws Exception {
         connectConfig = new ConnectConfig();
         connectConfig.setHttpPort(8081);
-        connectConfig.setOmsDriverUrl("oms:rocketmq://localhost:9876/default:default");
+        connectConfig.setRuntimeOmsDriverUrl("oms:rocketmq://localhost:9876/default:default");
         connectConfig.setStorePathRootDir(System.getProperty("user.home") + File.separator + "testConnectorStore");
         connectConfig.setWorkerId("testWorkerId");
 
         connectorName = "testConnectorName";
         connectKeyValue = new ConnectKeyValue();
         connectKeyValue.put(RuntimeConfigDefine.CONNECTOR_CLASS, "io.openmessaging.connect.runtime.service.TestConnector");
-        connectKeyValue.put(RuntimeConfigDefine.OMS_DRIVER_URL, "oms:rocketmq://localhost:9876/default:default");
+        connectKeyValue.put(RuntimeConfigDefine.RUNTIME_OMS_DRIVER_URL, "oms:rocketmq://localhost:9876/default:default");
         connectKeyValue.put(RuntimeConfigDefine.SOURCE_RECORD_CONVERTER, "source-record-converter");
 
 

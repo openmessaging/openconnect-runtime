@@ -84,7 +84,7 @@ public class PositionManagementServiceImplTest {
     public void init() throws Exception {
         connectConfig = new ConnectConfig();
         connectConfig.setHttpPort(8081);
-        connectConfig.setOmsDriverUrl("oms:rocketmq://localhost:9876/default:default");
+        connectConfig.setRuntimeOmsDriverUrl("oms:rocketmq://localhost:9876/default:default");
         connectConfig.setStorePathRootDir(System.getProperty("user.home") + File.separator + "testConnectorStore");
         connectConfig.setWorkerId("testWorkerId");
         doReturn(producer).when(messagingAccessPoint).createProducer();

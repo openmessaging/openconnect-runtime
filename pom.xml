@@ -72,7 +72,7 @@
                 <directory>src/main/resources</directory>
                 <excludes>
                     <exclude>*.xml</exclude>
-                    <exclude>connect.conf</exclude>
+                    <exclude>runtime.conf</exclude>
                 </excludes>
                 <filtering>true</filtering>
             </resource>

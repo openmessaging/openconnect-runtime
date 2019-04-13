@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Connect controller to access and control all resource in runtime.
  */
-public class ConnectController {
+public class RuntimeController {
 
     private static final Logger log = LoggerFactory.getLogger(LoggerName.OMS_RUNTIME);
 
@@ -87,11 +87,11 @@ public class ConnectController {
      */
     private ScheduledExecutorService scheduledExecutorService;
 
-    public ConnectController(ConnectConfig connectConfig) {
+    public RuntimeController(ConnectConfig connectConfig) {
 
         this.connectConfig = connectConfig;
         this.messagingAccessWrapper = new MessagingAccessWrapper();
-        MessagingAccessPoint messageAccessPoint = messagingAccessWrapper.getMessageAccessPoint(connectConfig.getOmsDriverUrl());
+        MessagingAccessPoint messageAccessPoint = messagingAccessWrapper.getMessageAccessPoint(connectConfig.getRuntimeOmsDriverUrl());
         this.clusterManagementService = new ClusterManagementServiceImpl(connectConfig, messageAccessPoint);
         this.configManagementService = new ConfigManagementServiceImpl(connectConfig, messageAccessPoint);
         this.positionManagementService = new PositionManagementServiceImpl(connectConfig, messageAccessPoint);
@@ -118,7 +118,7 @@ public class ConnectController {
         this.scheduledExecutorService.scheduleAtFixedRate(() -> {
 
             try {
-                ConnectController.this.configManagementService.persist();
+                RuntimeController.this.configManagementService.persist();
             } catch (Exception e) {
                 log.error("schedule persist config error.", e);
             }
@@ -128,7 +128,7 @@ public class ConnectController {
         this.scheduledExecutorService.scheduleAtFixedRate(() -> {
 
             try {
-                ConnectController.this.positionManagementService.persist();
+                RuntimeController.this.positionManagementService.persist();
             } catch (Exception e) {
                 log.error("schedule persist position error.", e);
             }

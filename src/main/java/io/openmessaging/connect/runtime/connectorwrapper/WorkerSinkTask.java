@@ -32,8 +32,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -44,18 +46,14 @@ public class WorkerSinkTask implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.OMS_RUNTIME);
 
     /**
-     * <p>
      * The configuration key that provides the list of topics that are inputs for this
      * SinkTask.
-     * </p>
      */
     public static final String TOPICS_CONFIG = "topics";
 
     /**
-     * <p>
      * The configuration key that provides a regex specifying which topics to include as inputs
      * for this SinkTask.
-     * </p>
      */
     public static final String TOPICS_REGEX_CONFIG = "topics.regex";
 
@@ -85,14 +83,9 @@ public class WorkerSinkTask implements Runnable {
     private PullConsumer consumer;
 
     /**
-     * A converter to parse sink data entry to byte[].
+     * A converter to parse sink data entry to object.
      */
     private Converter recordConverter;
-
-    /**
-     * Current position info of the sink task.
-     */
-    private Map<ByteBuffer, ByteBuffer> positionData = new HashMap<>();
 
     public WorkerSinkTask(String connectorName,
                           SinkTask sinkTask,
@@ -108,7 +101,7 @@ public class WorkerSinkTask implements Runnable {
     }
 
     /**
-     * Start a sink task, and send data entry to MQ cyclically.
+     * Start a sink task, and receive data entry from MQ cyclically.
      */
     @Override
     public void run() {
@@ -154,25 +147,21 @@ public class WorkerSinkTask implements Runnable {
                 log.debug("{} Initializing and starting task for topics regex {}", this, topicsRegexStr);*/
             }
             sinkTask.start(taskConfig);
-            log.info("Task start, config:{}", JSON.toJSONString(taskConfig));
+            log.info("Task start, config: {}", JSON.toJSONString(taskConfig));
 
             while (!isStopping.get()) {
                 final Message message = consumer.receive();
                 if (null != message) {
-                    receiveRecord(message);
+                    receiveMessage(message);
                     String msgId = message.sysHeaders().getString(Message.BuiltinKeys.MESSAGE_ID);
-                    log.info("Received one message: %s%n", msgId);
+                    log.info("Received one message: {}", msgId);
                     consumer.ack(msgId);
                 }
             }
             log.info("Task stop, config:{}", JSON.toJSONString(taskConfig));
         } catch (Exception e) {
-            log.error("Run task failed.", e);
+            log.error("Run task failed {}.", e);
         }
-    }
-
-    public Map<ByteBuffer, ByteBuffer> getPositionData() {
-        return positionData;
     }
 
     public void stop() {
@@ -186,7 +175,7 @@ public class WorkerSinkTask implements Runnable {
      *
      * @param message
      */
-    private void receiveRecord(Message message) {
+    private void receiveMessage(Message message) {
         String queueName = message.sysHeaders().getString("DESTINATION");
         final byte[] messageBody = message.getBody(byte[].class);
         final SourceDataEntry sourceDataEntry = JSON.parseObject(new String(messageBody), SourceDataEntry.class);

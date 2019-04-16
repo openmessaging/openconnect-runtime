@@ -81,12 +81,12 @@ public class WorkerTest {
         worker.setWorkingConnectors(workingConnectors);
         assertThat(worker.getWorkingConnectors().size()).isEqualTo(3);
 
-        Set<WorkerSourceTask> workerSourceTasks = new HashSet<>();
+        Set<Runnable> runnables = new HashSet<>();
         for (int i=0; i<3; i++) {
             ConnectKeyValue connectKeyValue = new ConnectKeyValue();
             connectKeyValue.getProperties().put("key1", "TEST-TASK-" + i + "1");
             connectKeyValue.getProperties().put("key2", "TEST-TASK-" + i + "2");
-            workerSourceTasks.add(new WorkerSourceTask("TEST-CONN-" + i,
+            runnables.add(new WorkerSourceTask("TEST-CONN-" + i,
                     new TestSourceTask(),
                     connectKeyValue,
                     new TestPositionStorageReader(),
@@ -94,7 +94,7 @@ public class WorkerTest {
                     producer
                     ));
         }
-        worker.setWorkingTasks(workerSourceTasks);
+        worker.setWorkingTasks(runnables);
         assertThat(worker.getWorkingTasks().size()).isEqualTo(3);
 
         worker.start();
@@ -150,10 +150,18 @@ public class WorkerTest {
             e.printStackTrace();
         }
 
-        Set<WorkerSourceTask> sourceTasks = worker.getWorkingTasks();
+        Set<Runnable> sourceTasks = worker.getWorkingTasks();
         assertThat(sourceTasks.size()).isEqualTo(3);
-        for (WorkerSourceTask wst: sourceTasks) {
-            assertThat(wst.getConnectorName()).isIn("TEST-CONN-1", "TEST-CONN-2", "TEST-CONN-3");
+        for (Runnable runnable : sourceTasks) {
+            WorkerSourceTask workerSourceTask = null;
+            WorkerSinkTask workerSinkTask = null;
+            if (runnable instanceof WorkerSourceTask) {
+                workerSourceTask = (WorkerSourceTask) runnable;
+            } else {
+                workerSinkTask = (WorkerSinkTask) runnable;
+            }
+            String connectorName = null != workerSourceTask ? workerSourceTask.getConnectorName() : workerSinkTask.getConnectorName();
+            assertThat(connectorName).isIn("TEST-CONN-1", "TEST-CONN-2", "TEST-CONN-3");
         }
     }
 }

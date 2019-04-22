@@ -22,6 +22,7 @@ import io.openmessaging.KeyValue;
 import io.openmessaging.Message;
 import io.openmessaging.connect.runtime.common.ConnectKeyValue;
 import io.openmessaging.connect.runtime.common.LoggerName;
+import io.openmessaging.connect.runtime.common.QueuePartition;
 import io.openmessaging.connector.api.data.Converter;
 import io.openmessaging.connector.api.data.SinkDataEntry;
 import io.openmessaging.connector.api.data.SourceDataEntry;
@@ -32,10 +33,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -46,16 +45,10 @@ public class WorkerSinkTask implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.OMS_RUNTIME);
 
     /**
-     * The configuration key that provides the list of topics that are inputs for this
+     * The configuration key that provides the list of queueNames that are inputs for this
      * SinkTask.
      */
-    public static final String TOPICS_CONFIG = "topics";
-
-    /**
-     * The configuration key that provides a regex specifying which topics to include as inputs
-     * for this SinkTask.
-     */
-    public static final String TOPICS_REGEX_CONFIG = "topics.regex";
+    public static final String QUEUENAMES_CONFIG = "queueNames";
 
     /**
      * Connector name of current task.
@@ -87,6 +80,10 @@ public class WorkerSinkTask implements Runnable {
      */
     private Converter recordConverter;
 
+    public ConcurrentHashMap<QueuePartition, PartitionStatus> partitionStatusMap;
+
+    public ConcurrentHashMap<QueuePartition, Long> partitionOffsetMap;
+
     public WorkerSinkTask(String connectorName,
                           SinkTask sinkTask,
                           ConnectKeyValue taskConfig,
@@ -109,22 +106,40 @@ public class WorkerSinkTask implements Runnable {
             sinkTask.initialize(new SinkTaskContext() {
                 @Override
                 public void resetOffset(String queueName, Long offset) {
-
+                    //TODO oms-1.0.0-alpha支持获取, 并且queueName 是否需要换成QueuePartition
+                    QueuePartition queuePartition = new QueuePartition(queueName, 0);
+                    partitionOffsetMap.put(queuePartition, offset);
                 }
 
                 @Override
                 public void resetOffset(Map<String, Long> offsets) {
-
+                    //TODO oms-1.0.0-alpha支持获取, 并且queueName 是否需要换成QueuePartition
+                    for (Map.Entry<String, Long> entry : offsets.entrySet()) {
+                        QueuePartition queuePartition = new QueuePartition(entry.getKey(), 0);
+                        partitionOffsetMap.put(queuePartition, entry.getValue());
+                    }
                 }
 
                 @Override
-                public void pause(List<String> queueName) {
-
+                public void pause(List<String> queueNames) {
+                    //TODO queueName 是否需要换成QueuePartition
+                    if (null != queueNames && queueNames.size() > 0) {
+                        for (String queueName : queueNames) {
+                            QueuePartition queuePartition = new QueuePartition(queueName, 0);
+                            partitionStatusMap.put(queuePartition, PartitionStatus.PAUSE);
+                        }
+                    }
                 }
 
                 @Override
-                public void resume(List<String> queueName) {
-
+                public void resume(List<String> queueNames) {
+                    //TODO queueName 是否需要换成QueuePartition
+                    if (null != queueNames && queueNames.size() > 0) {
+                        for (String queueName : queueNames) {
+                            QueuePartition queuePartition = new QueuePartition(queueName, 0);
+                            partitionStatusMap.remove(queuePartition);
+                        }
+                    }
                 }
 
                 @Override
@@ -132,35 +147,50 @@ public class WorkerSinkTask implements Runnable {
                     return taskConfig;
                 }
             });
-            String topicsStr = taskConfig.getString(TOPICS_CONFIG);
-            if (!StringUtils.isEmpty(topicsStr)) {
-                String[] topics = topicsStr.split(",");
-                for (String topic : topics) {
-                    consumer.attachQueue(topic);
+            String queueNamesStr = taskConfig.getString(QUEUENAMES_CONFIG);
+            if (!StringUtils.isEmpty(queueNamesStr)) {
+                String[] queueNames = queueNamesStr.split(",");
+                for (String queueName : queueNames) {
+                    consumer.attachQueue(queueName);
                 }
-                log.debug("{} Initializing and starting task for topics {}", this, topics);
+                log.debug("{} Initializing and starting task for queueNames {}", this, queueNames);
             } else {
-                // TODO 通过正则表达式订阅topic
-                /* String topicsRegexStr = taskConfig.getString(TOPICS_REGEX_CONFIG);
-                Pattern pattern = Pattern.compile(topicsRegexStr);
-              consumer.attachQueue(pattern）
-                log.debug("{} Initializing and starting task for topics regex {}", this, topicsRegexStr);*/
+                log.error("Lack of sink comsume queueNames config");
             }
             sinkTask.start(taskConfig);
-            log.info("Task start, config: {}", JSON.toJSONString(taskConfig));
 
             while (!isStopping.get()) {
                 final Message message = consumer.receive();
-                if (null != message) {
-                    receiveMessage(message);
-                    String msgId = message.sysHeaders().getString(Message.BuiltinKeys.MESSAGE_ID);
-                    log.info("Received one message: {}", msgId);
+                List<Message> messages = new ArrayList<>(16);
+                messages.add(message);
+                checkPause(messages);
+                receiveMessages(messages);
+                for (Message message1 : messages) {
+                    String msgId = message1.sysHeaders().getString(Message.BuiltinKeys.MESSAGE_ID);
+                    log.info("Received one message success : {}", msgId);
+                    //TODO 更新queue offset
+//                    partitionOffsetMap.put()
                     consumer.ack(msgId);
                 }
             }
             log.info("Task stop, config:{}", JSON.toJSONString(taskConfig));
         } catch (Exception e) {
             log.error("Run task failed {}.", e);
+        }
+    }
+
+    private void checkPause(List<Message> messages) {
+        final Iterator<Message> iterator = messages.iterator();
+        while (iterator.hasNext()) {
+            final Message message = iterator.next();
+            String queueName = message.sysHeaders().getString("DESTINATION");
+            //TODO 缺失partition
+            QueuePartition queuePartition = new QueuePartition(queueName, 0);
+            if (null != partitionStatusMap.get(queuePartition)) {
+                String msgId = message.sysHeaders().getString(Message.BuiltinKeys.MESSAGE_ID);
+                log.info("QueueName {}, partition {} pause, Discard the message {}", queueName, 0, msgId);
+                iterator.remove();
+            }
         }
     }
 
@@ -173,9 +203,18 @@ public class WorkerSinkTask implements Runnable {
     /**
      * receive message from MQ.
      *
-     * @param message
+     * @param messages
      */
-    private void receiveMessage(Message message) {
+    private void receiveMessages(List<Message> messages) {
+        List<SinkDataEntry> sinkDataEntries = new ArrayList<>(8);
+        for (Message message : messages) {
+            SinkDataEntry sinkDataEntry = convertToSinkDataEntry(message);
+            sinkDataEntries.add(sinkDataEntry);
+        }
+        sinkTask.put(sinkDataEntries);
+    }
+
+    private SinkDataEntry convertToSinkDataEntry(Message message) {
         String queueName = message.sysHeaders().getString("DESTINATION");
         final byte[] messageBody = message.getBody(byte[].class);
         final SourceDataEntry sourceDataEntry = JSON.parseObject(new String(messageBody), SourceDataEntry.class);
@@ -184,12 +223,10 @@ public class WorkerSinkTask implements Runnable {
         final Object recodeObject = recordConverter.byteToObject(decodeBytes);
         Object[] newObject = new Object[1];
         newObject[0] = recodeObject;
-        //TODO queueOffset如何获得
+        //TODO oms-1.0.0-alpha支持获取offset，并且支持批量获取消息,SinkDataEntry & SourceDataEntry 是否要增加partition相关属性
         SinkDataEntry sinkDataEntry = new SinkDataEntry(10L, sourceDataEntry.getTimestamp(), sourceDataEntry.getEntryType(), queueName, sourceDataEntry.getSchema(), newObject);
         sinkDataEntry.setPayload(newObject);
-        List<SinkDataEntry> sinkDataEntries = new ArrayList<>(8);
-        sinkDataEntries.add(sinkDataEntry);
-        sinkTask.put(sinkDataEntries);
+        return sinkDataEntry;
     }
 
     public String getConnectorName() {
@@ -207,5 +244,9 @@ public class WorkerSinkTask implements Runnable {
         sb.append("connectorName:" + connectorName)
                 .append("\nConfigs:" + JSON.toJSONString(taskConfig));
         return sb.toString();
+    }
+
+    private enum PartitionStatus {
+        PAUSE;
     }
 }

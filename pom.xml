@@ -214,7 +214,7 @@
         </dependency>
         <dependency>
             <groupId>io.openmessaging</groupId>
-            <artifactId>openmessaging-connect</artifactId>
+            <artifactId>openmessaging-connector</artifactId>
             <version>0.1.0-beta</version>
         </dependency>
         <dependency>

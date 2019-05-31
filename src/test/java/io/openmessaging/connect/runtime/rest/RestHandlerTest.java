@@ -127,7 +127,7 @@ public class RestHandlerTest {
 
     private Set<WorkerConnector> workerConnectors;
 
-    private Set<WorkerSourceTask> workerSourceTasks;
+    private Set<Runnable> workerTasks;
 
     @Before
     public void init() throws Exception {
@@ -196,7 +196,7 @@ public class RestHandlerTest {
         };
         WorkerSourceTask workerSourceTask1 = new WorkerSourceTask("testConnectorName1", sourceTask, connectKeyValue, positionStorageReader, converter, producer);
         WorkerSourceTask workerSourceTask2 = new WorkerSourceTask("testConnectorName2", sourceTask, connectKeyValue1, positionStorageReader, converter, producer);
-        workerSourceTasks = new HashSet<WorkerSourceTask>() {
+        workerTasks = new HashSet<Runnable>() {
             {
                 add(workerSourceTask1);
                 add(workerSourceTask2);
@@ -204,7 +204,7 @@ public class RestHandlerTest {
         };
         when(connectController.getWorker()).thenReturn(worker);
         when(worker.getWorkingConnectors()).thenReturn(workerConnectors);
-        when(worker.getWorkingTasks()).thenReturn(workerSourceTasks);
+        when(worker.getWorkingTasks()).thenReturn(workerTasks);
 
         restHandler = new RestHandler(connectController);
 
@@ -254,8 +254,8 @@ public class RestHandlerTest {
             sb.append(workerConnector.toString() + "\n");
         }
         sb.append("working tasks:\n");
-        for (WorkerSourceTask workerSourceTask : workerSourceTasks) {
-            sb.append(workerSourceTask.toString() + "\n");
+        for (Runnable runnable : workerTasks) {
+            sb.append(runnable.toString() + "\n");
         }
         assertEquals(sb.toString(), EntityUtils.toString(httpResponse4.getEntity(), "UTF-8"));
     }

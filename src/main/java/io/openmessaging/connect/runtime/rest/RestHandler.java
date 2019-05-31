@@ -55,15 +55,15 @@ public class RestHandler {
     private void getAllocatedInfo(Context context){
 
         Set<WorkerConnector> workerConnectors = connectController.getWorker().getWorkingConnectors();
-        Set<WorkerSourceTask> workerSourceTasks = connectController.getWorker().getWorkingTasks();
+        Set<Runnable> workerSourceTasks = connectController.getWorker().getWorkingTasks();
         StringBuilder sb = new StringBuilder();
         sb.append("working connectors:\n");
         for(WorkerConnector workerConnector : workerConnectors){
             sb.append(workerConnector.toString()+"\n");
         }
         sb.append("working tasks:\n");
-        for(WorkerSourceTask workerSourceTask : workerSourceTasks){
-            sb.append(workerSourceTask.toString()+"\n");
+        for(Runnable runnable : workerSourceTasks){
+            sb.append(runnable.toString()+"\n");
         }
         context.result(sb.toString());
     }

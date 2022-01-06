@@ -23,7 +23,7 @@ import io.openmessaging.connector.api.Task;
 
 import java.util.List;
 
-public class TestConnector implements Connector {
+public class TestConnector extends Connector {
 
     @Override
     public String verifyAndSetConfig(KeyValue config) {

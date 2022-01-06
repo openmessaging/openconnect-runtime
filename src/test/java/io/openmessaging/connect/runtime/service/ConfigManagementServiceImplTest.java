@@ -227,7 +227,7 @@ public class ConfigManagementServiceImplTest {
 
 }
 
-class TestConnector implements Connector {
+class TestConnector extends Connector {
 
     private KeyValue config;
 

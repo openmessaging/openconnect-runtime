@@ -23,6 +23,7 @@ import io.openmessaging.Message;
 import io.openmessaging.connect.runtime.common.ConnectKeyValue;
 import io.openmessaging.connect.runtime.common.LoggerName;
 import io.openmessaging.connect.runtime.common.QueuePartition;
+import io.openmessaging.connector.api.common.QueueMetaData;
 import io.openmessaging.connector.api.data.Converter;
 import io.openmessaging.connector.api.data.SinkDataEntry;
 import io.openmessaging.connector.api.data.SourceDataEntry;
@@ -105,38 +106,34 @@ public class WorkerSinkTask implements Runnable {
         try {
             sinkTask.initialize(new SinkTaskContext() {
                 @Override
-                public void resetOffset(String queueName, Long offset) {
-                    //TODO oms-1.0.0-alpha支持获取, 并且queueName 是否需要换成QueuePartition
-                    QueuePartition queuePartition = new QueuePartition(queueName, 0);
+                public void resetOffset(QueueMetaData queueMetaData, Long offset) {
+                    QueuePartition queuePartition = new QueuePartition(queueMetaData.getQueueName(), 0);
                     partitionOffsetMap.put(queuePartition, offset);
                 }
 
                 @Override
-                public void resetOffset(Map<String, Long> offsets) {
-                    //TODO oms-1.0.0-alpha支持获取, 并且queueName 是否需要换成QueuePartition
-                    for (Map.Entry<String, Long> entry : offsets.entrySet()) {
-                        QueuePartition queuePartition = new QueuePartition(entry.getKey(), 0);
+                public void resetOffset(Map<QueueMetaData, Long> offsets) {
+                    for (Map.Entry<QueueMetaData, Long> entry : offsets.entrySet()) {
+                        QueuePartition queuePartition = new QueuePartition(entry.getKey().getQueueName(), 0);
                         partitionOffsetMap.put(queuePartition, entry.getValue());
                     }
                 }
 
                 @Override
-                public void pause(List<String> queueNames) {
-                    //TODO queueName 是否需要换成QueuePartition
-                    if (null != queueNames && queueNames.size() > 0) {
-                        for (String queueName : queueNames) {
-                            QueuePartition queuePartition = new QueuePartition(queueName, 0);
+                public void pause(List<QueueMetaData> queueMetaDataList) {
+                    if (null != queueMetaDataList && queueMetaDataList.size() > 0) {
+                        for (QueueMetaData queueMetaData : queueMetaDataList) {
+                            QueuePartition queuePartition = new QueuePartition(queueMetaData.getQueueName(), 0);
                             partitionStatusMap.put(queuePartition, PartitionStatus.PAUSE);
                         }
                     }
                 }
 
                 @Override
-                public void resume(List<String> queueNames) {
-                    //TODO queueName 是否需要换成QueuePartition
-                    if (null != queueNames && queueNames.size() > 0) {
-                        for (String queueName : queueNames) {
-                            QueuePartition queuePartition = new QueuePartition(queueName, 0);
+                public void resume(List<QueueMetaData> queueMetaDataList) {
+                    if (null != queueMetaDataList && queueMetaDataList.size() > 0) {
+                        for (QueueMetaData queueMetaData : queueMetaDataList) {
+                            QueuePartition queuePartition = new QueuePartition(queueMetaData.getQueueName(), 0);
                             partitionStatusMap.remove(queuePartition);
                         }
                     }
